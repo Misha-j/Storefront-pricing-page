@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Toggle Switch Styles */
+.toggle-checkbox:checked {
+  @apply: right-0 border-blue-600;
+  right: 0;
+  border-color: #3B82F6;
+}
+.toggle-checkbox:checked + .toggle-label {
+  @apply: bg-blue-600;
+  background-color: #3B82F6;
+}
