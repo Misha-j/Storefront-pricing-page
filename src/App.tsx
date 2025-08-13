@@ -255,7 +255,7 @@ function App() {
         return (
           <div className="flex flex-col items-center">
             <Check className="w-5 h-5 text-green-600 mb-1" />
-            <span className="text-xs text-gray-600 font-medium">unlimited valuations free for your clients</span>
+            <span className="text-xs text-gray-600 font-medium">unlimited valuations for your clients</span>
           </div>
         );
       }
