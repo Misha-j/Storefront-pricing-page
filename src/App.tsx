@@ -1,13 +1,18 @@
 import React from 'react';
-import { Check, Building2, ChevronDown, ChevronUp, Users, Globe, Settings } from 'lucide-react';
+import { Check, Building2, ChevronDown, ChevronUp, Users, Globe, Settings, Target, TrendingUp, Crown, Star, Zap, Plus } from 'lucide-react';
 
 function App() {
   const [expandedPlans, setExpandedPlans] = React.useState<Record<string, boolean>>({});
   const [selectedCompany, setSelectedCompany] = React.useState('Acme Corp');
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('business');
+  const [showComparison, setShowComparison] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const [showDebug, setShowDebug] = React.useState(false);
+  
+  // New state for comparison plan selection
+  const [comparisonPlans, setComparisonPlans] = React.useState(['Business Free', 'Business Max', 'Advisor Premium']);
+  const [comparisonDropdownsOpen, setComparisonDropdownsOpen] = React.useState<Record<number, boolean>>({});
 
   // Mock companies data - in a real app, this would come from an API
   const companies = [
@@ -68,8 +73,20 @@ function App() {
   // Click outside handler
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Don't close if clicking on the company card button
+      if (target.closest('.company-card-button')) {
+        return;
+      }
+      
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsCompanyDropdownOpen(false);
+      }
+      
+      // Close comparison dropdowns when clicking outside
+      if (!target.closest('.comparison-dropdown')) {
+        setComparisonDropdownsOpen({});
       }
     };
 
@@ -95,6 +112,41 @@ function App() {
   // Check if a plan is recommended (Business Max for business, Advisor Premium for advisors)
   const isRecommendedPlan = (planName: string) => {
     return planName === 'Business Max' || planName === 'Advisor Premium';
+  };
+
+  // Helper functions for comparison plan management
+  const toggleComparisonDropdown = (index: number) => {
+    setComparisonDropdownsOpen(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const switchComparisonPlan = (index: number, newPlan: string) => {
+    setComparisonPlans(prev => {
+      const newPlans = [...prev];
+      newPlans[index] = newPlan;
+      return newPlans;
+    });
+    setComparisonDropdownsOpen(prev => ({
+      ...prev,
+      [index]: false
+    }));
+  };
+
+  const getAllAvailablePlans = () => {
+    return ['Business Free', 'Business Mini', 'Business Max', 'Advisor Basic', 'Advisor Premium'];
+  };
+
+  const getPlanPrice = (planName: string) => {
+    const prices: Record<string, string> = {
+      'Business Free': '$0/year',
+      'Business Mini': '$100/year',
+      'Business Max': '$1,000/year',
+      'Advisor Basic': '$50/year',
+      'Advisor Premium': '$200/year'
+    };
+    return prices[planName] || '$0/year';
   };
 
   // Check if user has advisor premium benefits
@@ -137,6 +189,84 @@ function App() {
     return 'Unknown scenario';
   };
 
+  // Feature comparison data
+  const featureComparison = {
+    'Business Free': {
+      'Day Zero Guide': 'full',
+      'Valuation report - Aha Planner (DIY)': 'none',
+      'Aha Planner - full exit analysis, Statements, KPIs': 'none',
+      'What If Simulator': 'none',
+      'Market comparable': 'none',
+      'Team collaboration': 'full',
+      'Referrals & Commissions': 'none',
+      'Multi client management': 'none',
+      'Advisor dashboard': 'none'
+    },
+    'Business Mini': {
+      'Day Zero Guide': 'full',
+      'Valuation report - Aha Planner (DIY)': 'full',
+      'Aha Planner - full exit analysis, Statements, KPIs': 'none',
+      'What If Simulator': 'none',
+      'Market comparable': 'none',
+      'Team collaboration': 'full',
+      'Referrals & Commissions': 'none',
+      'Multi client management': 'none',
+      'Advisor dashboard': 'none'
+    },
+    'Business Max': {
+      'Day Zero Guide': 'full',
+      'Valuation report - Aha Planner (DIY)': 'full',
+      'Aha Planner - full exit analysis, Statements, KPIs': 'full',
+      'What If Simulator': 'full',
+      'Market comparable': 'full',
+      'Team collaboration': 'full',
+      'Referrals & Commissions': 'none',
+      'Multi client management': 'none',
+      'Advisor dashboard': 'none'
+    },
+    'Advisor Basic': {
+      'Day Zero Guide': 'full',
+      'Valuation report - Aha Planner (DIY)': 'none',
+      'Aha Planner - full exit analysis, Statements, KPIs': 'none',
+      'What If Simulator': 'none',
+      'Market comparable': 'none',
+      'Team collaboration': 'full',
+      'Referrals & Commissions': 'full',
+      'Multi client management': 'full',
+      'Advisor dashboard': 'full'
+    },
+    'Advisor Premium': {
+      'Day Zero Guide': 'full',
+      'Valuation report - Aha Planner (DIY)': 'full',
+      'Aha Planner - full exit analysis, Statements, KPIs': 'none',
+      'What If Simulator': 'none',
+      'Market comparable': 'none',
+      'Team collaboration': 'full',
+      'Referrals & Commissions': 'full',
+      'Multi client management': 'full',
+      'Advisor dashboard': 'full'
+    }
+  };
+
+  const getFeatureIcon = (feature: string, level: string, plan?: string) => {
+    if (level === 'full') {
+      // Special case for Advisor Premium with client discount text
+      if (plan === 'Advisor Premium' && feature === 'Valuation report - Aha Planner (DIY)') {
+        return (
+          <div className="flex flex-col items-center">
+            <Check className="w-5 h-5 text-green-600 mb-1" />
+            <span className="text-xs text-gray-600 font-medium">unlimited valuations free for your clients</span>
+          </div>
+        );
+      }
+      return (
+        <Check className="w-5 h-5 text-green-600" />
+      );
+    }
+    if (level === 'partial') return <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center"><div className="w-3 h-3 bg-yellow-500 rounded-full"></div></div>;
+    return <div className="w-5 h-5 text-gray-300 text-center font-bold">—</div>;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Simple Header */}
@@ -152,176 +282,167 @@ function App() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Enhanced Hero Section with Company Selector */}
+        {/* Enhanced Hero Section */}
         <div className="text-center mb-16">
-          <div className="relative mb-8">
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              Pricing that pays for itself
-              <span className="text-orange-500 text-6xl absolute -top-2 -right-4">*</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Unlock value in your business—wherever you are in your exit journey
-            </p>
-          </div>
-
-          {/* Company Selector - Centered under subtitle */}
-          <div className="mb-8 flex justify-center">
-            <div className="relative" ref={dropdownRef}>
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-600">
-                  <span>Viewing plans for:</span>
-                </div>
-                
-                <div className="relative">
-                  <button
-                    onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
-                    className="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-4 py-2 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors shadow-sm"
-                    aria-haspopup="true"
-                    aria-expanded={isCompanyDropdownOpen}
-                  >
-                    <Building2 className="w-4 h-4 text-gray-600" />
-                    <span className="font-medium text-gray-900">{selectedCompany}</span>
-                    <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${isCompanyDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  {isCompanyDropdownOpen && (
-                    <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-in fade-in-0 zoom-in-95">
-                      <div className="p-4 border-b border-gray-100">
-                        <h3 className="text-sm font-medium text-gray-900 mb-2">Select Company</h3>
-                        <p className="text-xs text-gray-600">Choose which company's plans you want to view</p>
-                      </div>
-                      
-                      <div className="max-h-60 overflow-y-auto">
-                        {/* Standalone Companies */}
-                        <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-                          <span className="text-xs font-medium text-gray-500">Standalone Companies</span>
-                        </div>
-                        {companies.filter(company => !company.linkedToCompanyId).map((company) => (
-                          <button
-                            key={company.id}
-                            onClick={() => {
-                              setSelectedCompany(company.name);
-                              setIsCompanyDropdownOpen(false);
-                            }}
-                            className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                              selectedCompany === company.name ? 'bg-blue-50 border-l-4 border-blue-600' : ''
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                  <Building2 className="w-4 h-4 text-gray-600" />
-                                </div>
-                                <div>
-                                  <div className="font-medium text-gray-900">{company.name}</div>
-                                  <div className="text-sm text-gray-600 flex items-center space-x-2">
-                                    <span>{company.plan}</span>
-                                    <span>•</span>
-                                    <span className="flex items-center">
-                                      <Users className="w-3 h-3 mr-1" />
-                                      {company.users} users
-                                    </span>
-                                    {company.hasAdvisorPlan && (
-                                      <>
-                                        <span>•</span>
-                                        <span className="text-blue-600 font-medium">{company.hasAdvisorPlan} advisor</span>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              {selectedCompany === company.name && (
-                                <Check className="w-4 h-4 text-blue-600" />
-                              )}
-                            </div>
-                          </button>
-                        ))}
-
-                        {/* Linked Companies */}
-                        {companies.filter(company => company.linkedToCompanyId).length > 0 && (
-                          <>
-                            <div className="px-4 py-2 bg-blue-50 border-b border-blue-100">
-                              <span className="text-xs font-medium text-blue-600">Linked Companies</span>
-                            </div>
-                            {companies.filter(company => company.linkedToCompanyId).map((company) => {
-                              const linkedCompany = companies.find(c => c.id === company.linkedToCompanyId);
-                              return (
-                                <button
-                                  key={company.id}
-                                  onClick={() => {
-                                    setSelectedCompany(company.name);
-                                    setIsCompanyDropdownOpen(false);
-                                  }}
-                                  className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                                    selectedCompany === company.name ? 'bg-blue-50 border-l-4 border-blue-600' : ''
-                                  }`}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <Building2 className="w-4 h-4 text-blue-600" />
-                                      </div>
-                                      <div>
-                                        <div className="font-medium text-gray-900 flex items-center">
-                                          {company.name}
-                                          <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
-                                            Linked
-                                          </span>
-                                        </div>
-                                        <div className="text-sm text-gray-600 flex items-center space-x-2">
-                                          <span>{company.plan}</span>
-                                          <span>•</span>
-                                          <span className="flex items-center">
-                                            <Users className="w-3 h-3 mr-1" />
-                                            {company.users} users
-                                          </span>
-                                          {company.hasAdvisorPlan && (
-                                            <>
-                                              <span>•</span>
-                                              <span className="text-blue-600 font-medium">{company.hasAdvisorPlan} advisor</span>
-                                            </>
-                                          )}
-                                        </div>
-                                        <div className="text-xs text-gray-500 mt-1">
-                                          Linked to: {linkedCompany?.name}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    {selectedCompany === company.name && (
-                                      <Check className="w-4 h-4 text-blue-600" />
-                                    )}
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </>
-                        )}
-                      </div>
-                      
-                      <div className="p-4 border-t border-gray-100 bg-gray-50">
-                        <button className="flex items-center text-blue-600 text-sm hover:text-blue-700 transition-colors">
-                          <Globe className="w-4 h-4 mr-2" />
-                          Add new company
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+          {/* Hero Content */}
+          <div className="mb-8">
+            <div className="relative mb-8">
+              <h1 className="text-6xl font-bold text-gray-900 mb-8 mt-8">
+                Pricing that pays for itself
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                Unlock value in your business—wherever you are in your exit journey
+              </p>
             </div>
           </div>
 
-          <p className="text-blue-600 underline cursor-pointer">
-            Are you an advisor? See advisor pricing
+          {/* Company Switcher */}
+          <div className="max-w-md mx-auto">
+            <button
+              onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
+              className="company-card-button w-full bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200 text-left"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Building2 className="w-3 h-3 text-blue-600" />
+                  </div>
+                  <span className="font-semibold text-gray-900">{selectedCompany}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-xs text-green-600 font-medium">Currently viewing</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <span><span className="font-medium">{currentCompany?.plan}</span> • {currentCompany?.users} users</span>
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isCompanyDropdownOpen ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
+
+            {/* Company Dropdown */}
+            {isCompanyDropdownOpen && (
+              <div className="absolute mt-2 w-[450px] bg-white border border-gray-200 rounded-lg shadow-lg z-50" ref={dropdownRef}>
+                  <div className="p-4 border-b border-gray-100">
+                    <h3 className="text-base font-semibold text-gray-900 mb-2">Switch Company</h3>
+                    <p className="text-sm text-gray-600">Choose which company to view plans for</p>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto">
+                    {/* Standalone Companies */}
+                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                      <span className="text-xs font-medium text-gray-500">Standalone Companies</span>
+                    </div>
+                    {companies.filter(company => !company.linkedToCompanyId).map((company) => (
+                      <button
+                        key={company.id}
+                        onClick={() => {
+                          setSelectedCompany(company.name);
+                          setIsCompanyDropdownOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                          selectedCompany === company.name ? 'bg-blue-50 border-l-4 border-blue-600' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <Building2 className="w-4 h-4 text-gray-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{company.name}</div>
+                              <div className="text-sm text-gray-600 flex items-center space-x-2">
+                                <span>{company.plan}{company.hasAdvisorPlan && `, ${company.hasAdvisorPlan} advisor`}</span>
+                                <span>•</span>
+                                <span>{company.users} users</span>
+                              </div>
+                            </div>
+                          </div>
+                          {selectedCompany === company.name && (
+                            <Check className="w-4 h-4 text-blue-600" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+
+                    {/* Linked Companies */}
+                    {companies.filter(company => company.linkedToCompanyId).length > 0 && (
+                      <>
+                        <div className="px-4 py-2 bg-blue-50 border-b border-blue-100">
+                          <span className="text-xs font-medium text-blue-600">Linked Companies</span>
+                        </div>
+                        {companies.filter(company => company.linkedToCompanyId).map((company) => {
+                          const linkedCompany = companies.find(c => c.id === company.linkedToCompanyId);
+                          return (
+                            <button
+                              key={company.id}
+                              onClick={() => {
+                                setSelectedCompany(company.name);
+                                setIsCompanyDropdownOpen(false);
+                              }}
+                              className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                                selectedCompany === company.name ? 'bg-blue-50 border-l-4 border-blue-600' : ''
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <Building2 className="w-4 h-4 text-blue-600" />
+                                  </div>
+                                  <div>
+                                                                      <div className="font-medium text-gray-900">
+                                    {company.name}
+                                  </div>
+                                                                      <div className="text-sm text-gray-600 flex items-center space-x-2">
+                                    <span>{company.plan}{company.hasAdvisorPlan && `, ${company.hasAdvisorPlan} advisor`}</span>
+                                    <span>•</span>
+                                    <span>{company.users} users</span>
+                                  </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Linked to: {linkedCompany?.name}
+                                    </div>
+                                  </div>
+                                </div>
+                                {selectedCompany === company.name && (
+                                  <Check className="w-4 h-4 text-blue-600" />
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+                  </div>
+                  
+                  <div className="p-4 border-t border-gray-100">
+                    <button className="w-full flex items-center justify-center space-x-2 text-blue-600 hover:text-blue-700 font-medium">
+                      <Plus className="w-4 h-4" />
+                      <span>Create New Company</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Advisor Link */}
+        <div className="text-center -mt-10 mb-16">
+          <p className="text-gray-600">
+            Are you an advisor?{' '}
+            <span 
+              className="text-blue-600 underline cursor-pointer hover:text-blue-700" 
+              onClick={() => document.getElementById('advisor-plans')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              View advisor plans →
+            </span>
           </p>
         </div>
 
         {/* Business Owners Section */}
         <div className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Exit planning tools</h2>
-            <p className="text-gray-600">Typical for Business owners or Advisors looking to purchase for their clients company</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Business plans</h2>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -330,7 +451,7 @@ function App() {
               isCurrentPlan('Business Free') 
                 ? 'border-blue-300' 
                 : isRecommendedPlan('Business Free')
-                ? 'border-green-500 ring-2 ring-green-100'
+                ? 'border-purple-500 ring-2 ring-purple-100'
                 : 'border-gray-200'
             }`}>
               {isCurrentPlan('Business Free') && (
@@ -340,12 +461,14 @@ function App() {
               )}
               {isRecommendedPlan('Business Free') && !isCurrentPlan('Business Free') && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-green-600 text-white px-3 py-1 text-xs font-medium rounded-full">RECOMMENDED</span>
+                  <span className="text-white px-3 py-1 text-xs font-medium rounded-full" style={{backgroundColor: '#5C00B8'}}>POPULAR</span>
                 </div>
               )}
               
               <h3 className="text-xl font-bold text-gray-900 mb-2">Business Free</h3>
-              <p className="text-gray-600 text-sm mb-6">Get a personalized roadmap of your exit options—at no cost.</p>
+              <p className="text-gray-600 text-sm mb-6">
+                <span className="font-semibold text-gray-900">Get a personalized roadmap</span> of your exit options—at no cost.
+              </p>
               
               <div className="mb-6">
                 <span className="text-4xl font-bold text-gray-900">$0</span>
@@ -370,54 +493,20 @@ function App() {
 
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Day Zero Guide – Compare exit paths based on your goals
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Invite team members or advisors to collaborate
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Upgrade anytime to run numbers or get support
                 </li>
-                {expandedPlans['business-free'] && (
-                  <>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Basic business valuation snapshot
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Exit readiness assessment
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Industry benchmarking data
-                    </li>
-                  </>
-                )}
               </ul>
               
-              {!expandedPlans['business-free'] && (
-                <button 
-                  onClick={() => togglePlan('business-free')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronDown className="w-4 h-4 mr-1" />
-                  Show All Features
-                </button>
-              )}
-              
-              {expandedPlans['business-free'] && (
-                <button 
-                  onClick={() => togglePlan('business-free')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronUp className="w-4 h-4 mr-1" />
-                  Show less features
-                </button>
-              )}
+
             </div>
 
             {/* Business Mini */}
@@ -425,7 +514,7 @@ function App() {
               isCurrentPlan('Business Mini') 
                 ? 'border-blue-300' 
                 : isRecommendedPlan('Business Mini')
-                ? 'border-green-500 ring-2 ring-green-100'
+                ? 'border-purple-500 ring-2 ring-purple-100'
                 : 'border-gray-200'
             }`}>
               {isCurrentPlan('Business Mini') && (
@@ -435,12 +524,14 @@ function App() {
               )}
               {isRecommendedPlan('Business Mini') && !isCurrentPlan('Business Mini') && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-green-600 text-white px-3 py-1 text-xs font-medium rounded-full">RECOMMENDED</span>
+                  <span className="text-white px-3 py-1 text-xs font-medium rounded-full" style={{backgroundColor: '#5C00B8'}}>POPULAR</span>
                 </div>
               )}
               
               <h3 className="text-xl font-bold text-gray-900 mb-2">Business Mini</h3>
-              <p className="text-gray-600 text-sm mb-6">See what your business might be worth and how that impacts your path.</p>
+              <p className="text-gray-600 text-sm mb-6">
+                <span className="font-semibold text-gray-900">See what your business might be worth</span> and how that impacts your path.
+              </p>
               
               <div className="mb-6">
                 {(() => {
@@ -474,8 +565,7 @@ function App() {
                   <button className="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded-md cursor-not-allowed">
                     Current Plan
                   </button>
-                  <button className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 flex items-center justify-center">
-                    <Settings className="w-4 h-4 mr-2" />
+                  <button className="w-full bg-transparent text-blue-600 py-2 px-4 rounded-md hover:bg-gray-50">
                     Manage Plan
                   </button>
                 </div>
@@ -487,54 +577,20 @@ function App() {
 
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Day Zero Guide – Compare exit paths based on your goals
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="font-medium text-gray-900">Everything in free plus:</span>
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Aha Planner (DIY) – Get simple valuation yourself
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Invite team members or advisors to collaborate
                 </li>
-                {expandedPlans['business-mini'] && (
-                  <>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Business valuation with market analysis
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Financial performance tracking
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Exit timeline planning
-                    </li>
-                  </>
-                )}
               </ul>
               
-              {!expandedPlans['business-mini'] && (
-                <button 
-                  onClick={() => togglePlan('business-mini')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronDown className="w-4 h-4 mr-1" />
-                  Show All Features
-                </button>
-              )}
-              
-              {expandedPlans['business-mini'] && (
-                <button 
-                  onClick={() => togglePlan('business-mini')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronUp className="w-4 h-4 mr-1" />
-                  Show less features
-                </button>
-              )}
+
             </div>
 
             {/* Business Max */}
@@ -542,7 +598,7 @@ function App() {
               isCurrentPlan('Business Max') 
                 ? 'border-blue-300' 
                 : isRecommendedPlan('Business Max')
-                ? 'border-green-500 ring-2 ring-green-100'
+                ? 'border-purple-500 ring-2 ring-purple-100'
                 : 'border-gray-200'
             }`}>
               {isCurrentPlan('Business Max') && (
@@ -552,12 +608,14 @@ function App() {
               )}
               {isRecommendedPlan('Business Max') && !isCurrentPlan('Business Max') && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-green-600 text-white px-3 py-1 text-xs font-medium rounded-full">RECOMMENDED</span>
+                  <span className="text-white px-3 py-1 text-xs font-medium rounded-full" style={{backgroundColor: '#5C00B8'}}>POPULAR</span>
                 </div>
               )}
               
               <h3 className="text-xl font-bold text-gray-900 mb-2">Business Max</h3>
-              <p className="text-gray-600 text-sm mb-6">A full planning toolkit to prepare your business for transition.</p>
+              <p className="text-gray-600 text-sm mb-6">
+                <span className="font-semibold text-gray-900">A full planning toolkit</span> to prepare your business for transition.
+              </p>
               
               <div className="mb-6">
                 {(() => {
@@ -591,8 +649,7 @@ function App() {
                   <button className="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded-md cursor-not-allowed">
                     Current Plan
                   </button>
-                  <button className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 flex items-center justify-center">
-                    <Settings className="w-4 h-4 mr-2" />
+                  <button className="w-full bg-transparent text-blue-600 py-2 px-4 rounded-md hover:bg-gray-50">
                     Manage Plan
                   </button>
                 </div>
@@ -604,71 +661,33 @@ function App() {
 
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Day Zero Guide – Compare exit paths based on your goals
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="font-medium text-gray-900">Everything in Business Mini plus:</span>
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Full Aha Planner access – Includes guided support and complete report access
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Access data on market comps transactions
                 </li>
-                {expandedPlans['business-max'] && (
-                  <>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Advanced financial modeling and projections
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Tax optimization strategies
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Legal document templates and preparation
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Buyer qualification and vetting tools
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Priority customer support
-                    </li>
-                  </>
-                )}
+                <li className="flex items-start">
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  Invite multiple teammates or advisors to work together
+                </li>
+
               </ul>
               
-              {!expandedPlans['business-max'] && (
-                <button 
-                  onClick={() => togglePlan('business-max')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronDown className="w-4 h-4 mr-1" />
-                  Show All Features
-                </button>
-              )}
-              
-              {expandedPlans['business-max'] && (
-                <button 
-                  onClick={() => togglePlan('business-max')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronUp className="w-4 h-4 mr-1" />
-                  Show less features
-                </button>
-              )}
+
             </div>
           </div>
         </div>
 
         {/* Advisors Section */}
-        <div>
+        <div id="advisor-plans">
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Advisor Tools</h2>
-            <p className="text-gray-600">Typical for Advisors managing exit planning for multiple clients</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Advisor Plans</h2>
           </div>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -684,7 +703,10 @@ function App() {
                   </div>
                 </div>
               </div>
-              <p className="text-gray-600 text-sm mb-6">Help clients explore succession options—faster and with less overhead</p>
+              
+              <p className="text-gray-600 text-sm mb-6">
+                <span className="font-semibold text-gray-900">Help clients explore succession options</span>—faster and with less overhead.
+              </p>
               
               <div className="mb-6">
                 <span className="text-gray-400 line-through text-lg">$480</span>
@@ -702,80 +724,45 @@ function App() {
                   <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
                     Purchase another seat
                   </button>
-                  <button className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50">
+                  <button className="w-full bg-transparent text-blue-600 py-2 px-4 rounded-md hover:bg-gray-50">
                     Manage seats
                   </button>
                 </div>
               ) : (
-                <button className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md mb-8 hover:bg-gray-50">
+                <button className="w-full bg-white border border-blue-600 text-blue-600 py-2 px-4 rounded-md mb-8 hover:bg-blue-50">
                   Purchase
                 </button>
               )}
 
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Multi-client access: Manage all your clients from one login
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Collaborate with clients and teammates
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Earn upto 15% referral discount on every Business Max plan purchase
                 </li>
-                <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Join exclusive events for Advisor Tier members
-                </li>
-                {expandedPlans['advisor-basic'] && (
-                  <>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Advanced reporting and analytics
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Custom workflow automation
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Integration with CRM systems
-                    </li>
-                  </>
-                )}
               </ul>
               
-              {!expandedPlans['advisor-basic'] && (
-                <button 
-                  onClick={() => togglePlan('advisor-basic')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronDown className="w-4 h-4 mr-1" />
-                  Show All Features
-                </button>
-              )}
-              
-              {expandedPlans['advisor-basic'] && (
-                <button 
-                  onClick={() => togglePlan('advisor-basic')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronUp className="w-4 h-4 mr-1" />
-                  Show less features
-                </button>
-              )}
+
             </div>
 
             {/* Advisor Premium */}
-            <div className="bg-white rounded-lg border-2 border-blue-600 p-8 relative">
+            <div className="bg-white rounded-lg border-2 border-purple-500 p-8 relative">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-blue-600 text-white px-3 py-1 text-xs font-medium rounded-full">POPULAR</span>
+                <span className="text-white px-3 py-1 text-xs font-medium rounded-full" style={{backgroundColor: '#5C00B8'}}>POPULAR</span>
               </div>
               
               <h3 className="text-xl font-bold text-gray-900 mb-2">Advisor Premium</h3>
-              <p className="text-gray-600 text-sm mb-6">Grow your practice with unlimited clients and powerful tracking tools</p>
+              
+              <p className="text-gray-600 text-sm mb-6">
+                <span className="font-semibold text-gray-900">Grow your practice with unlimited clients</span> and powerful tracking tools.
+              </p>
               
               <div className="mb-6">
                 <span className="text-4xl font-bold text-gray-900">$3,000</span>
@@ -792,7 +779,7 @@ function App() {
                   <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
                     Purchase another seat
                   </button>
-                  <button className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50">
+                  <button className="w-full bg-transparent text-blue-600 py-2 px-4 rounded-md hover:bg-gray-50">
                     Manage seats
                   </button>
                 </div>
@@ -804,58 +791,128 @@ function App() {
 
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Everything in Advisor Basic, plus:
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="font-medium text-gray-900">Everything in Advisor Basic, plus:</span>
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Create unlimited client accounts on the Business Mini plan—no extra fees
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  Generate unlimited valuation reports for all your clients or even prospective ones — no limits, no extra fees.
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                   Earn upto 30% referral discount or commission on every Business Max plan purchase
                 </li>
-                {expandedPlans['advisor-premium'] && (
-                  <>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Dedicated account manager
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Custom integrations and API access
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      Advanced security and compliance features
-                    </li>
-                  </>
-                )}
               </ul>
               
-              {!expandedPlans['advisor-premium'] && (
-                <button 
-                  onClick={() => togglePlan('advisor-premium')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronDown className="w-4 h-4 mr-1" />
-                  Show All Features
-                </button>
-              )}
-              
-              {expandedPlans['advisor-premium'] && (
-                <button 
-                  onClick={() => togglePlan('advisor-premium')}
-                  className="flex items-center text-blue-600 text-sm hover:text-blue-700 mt-4"
-                >
-                  <ChevronUp className="w-4 h-4 mr-1" />
-                  Show less features
-                </button>
-              )}
+
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Feature Comparison Matrix */}
+        <div className="mb-20 mt-32">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Compare Plans</h2>
+            <p className="text-gray-600">See exactly what's included in each plan</p>
+          </div>
+          
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mx-auto" style={{ width: '80vw' }}>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900"></th>
+                    {comparisonPlans.map((plan, index) => (
+                      <th key={index} className="px-6 py-4 text-center text-sm font-medium text-gray-900">
+                        <div className="flex flex-col items-center">
+                          <div className="relative">
+                            <button
+                              onClick={() => toggleComparisonDropdown(index)}
+                              className="comparison-dropdown flex items-center justify-between w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            >
+                              <span className="font-bold text-gray-900">{plan}</span>
+                              <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${comparisonDropdownsOpen[index] ? 'rotate-180' : ''}`} />
+                            </button>
+                            
+                            {/* Plan Selection Dropdown */}
+                            {comparisonDropdownsOpen[index] && (
+                              <div className="comparison-dropdown absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                <div className="py-1">
+                                  {getAllAvailablePlans().map((availablePlan) => (
+                                    <button
+                                      key={availablePlan}
+                                      onClick={() => switchComparisonPlan(index, availablePlan)}
+                                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
+                                        comparisonPlans[index] === availablePlan ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                                      }`}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <span>{availablePlan}</span>
+                                        {comparisonPlans[index] === availablePlan && (
+                                          <Check className="w-4 h-4" />
+                                        )}
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-sm text-gray-600 mt-3 font-medium">{getPlanPrice(plan)}</span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {Object.keys(featureComparison['Business Free']).map((feature) => (
+                    <tr key={feature} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-900 font-medium">{feature}</td>
+                      {comparisonPlans.map((plan, index) => (
+                        <td key={index} className="px-6 py-4 text-center">
+                          <div className="flex justify-center">
+                            {getFeatureIcon(feature, featureComparison[plan]?.[feature] || 'none', plan)}
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+
+          
+          {showComparison && (
+            <div className="mt-8 bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Feature Breakdown</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                {comparisonPlans.map((plan, index) => (
+                  <div key={index}>
+                    <h4 className="font-medium text-gray-900 mb-3">{plan}</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      {Object.entries(featureComparison[plan] || {}).map(([feature, level]) => (
+                        <li key={feature} className="flex items-start">
+                          {level === 'full' ? (
+                            <Check className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                          ) : level === 'partial' ? (
+                            <div className="w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                              <div className="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                          ) : (
+                            <div className="w-4 h-4 bg-gray-200 rounded-full mr-2 mt-0.5 flex-shrink-0"></div>
+                          )}
+                          <span className="text-xs">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
       {/* Debug Panel */}
       <div className="fixed bottom-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm z-50">

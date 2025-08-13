@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base font family */
+html, body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Simple subtle border glow for popular plans */
+.popular-glow {
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1), 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+/* Enhanced hover effects for popular plans */
+.popular-card:hover {
+  transform: scale(1.02) translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Gradient text effect for popular plan titles */
+.popular-title {
+  background: linear-gradient(135deg, #5C00B8, #8B5CF6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Toggle Switch Styles */
 .toggle-checkbox:checked {
   @apply: right-0 border-blue-600;
