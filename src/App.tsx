@@ -494,7 +494,7 @@ function App() {
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Day Zero Guide – Compare exit paths based on your goals
+                  Compare exit paths based on your goals with Day Zero Guide
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -502,7 +502,11 @@ function App() {
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Upgrade anytime to run numbers or get support
+                  Pre-built AI prompts with Zolid AI for common exit planning questions
+                </li>
+                <li className="flex items-start">
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  Upgrade anytime
                 </li>
               </ul>
               
@@ -578,15 +582,19 @@ function App() {
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="font-medium text-gray-900">Everything in free plus:</span>
+                  <span className="font-medium text-gray-900">Everything in Business Free, plus:</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Aha Planner (DIY) – Get simple valuation yourself
+                  Get business valuation with basic Aha Planner
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Invite team members or advisors to collaborate
+                  Collaborate with your team or advisor
+                </li>
+                <li className="flex items-start">
+                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  Custom AI prompts with Zolid AI for personalized exit planning insights
                 </li>
               </ul>
               
@@ -662,11 +670,11 @@ function App() {
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="font-medium text-gray-900">Everything in Business Mini plus:</span>
+                  <span className="font-medium text-gray-900">Everything in Business Mini, plus:</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Full Aha Planner access – Includes guided support and complete report access
+                  Complete valuation with 21 KPIs, financial feasibility of exit options, scenario modeling, and more with Aha Planner
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -674,7 +682,7 @@ function App() {
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Invite multiple teammates or advisors to work together
+                  Custom AI prompts with Zolid AI for personalized exit planning insights
                 </li>
 
               </ul>
@@ -796,7 +804,7 @@ function App() {
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  Generate unlimited valuation reports for all your clients or even prospective ones — no limits, no extra fees.
+                  Generate unlimited valuation reports for all your clients or even prospective ones.
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
